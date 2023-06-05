@@ -122,7 +122,10 @@ function drawNextZoomArea(event) {
 	}
 
 	const zoomAreaSize = imgDisplaySize / 2; // because the zoom factor is 2
-	const viewBox = getViewBox(event.clientX, event.clientY, zoomAreaSize, imgDisplaySize);
+	const rect = event.target.getBoundingClientRect();
+	const x = event.clientX - rect.left;
+	const y = event.clientY - rect.top;
+	const viewBox = getViewBox(x, y, zoomAreaSize, imgDisplaySize);
 
 	zoomContext.strokeStyle = 'red';
 	zoomContext.strokeRect(viewBox.min.x, viewBox.min.y, zoomAreaSize, zoomAreaSize);
