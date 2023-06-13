@@ -123,8 +123,8 @@ function drawNextZoomArea(event) {
 
 	const zoomAreaSize = imgDisplaySize / 2; // because the zoom factor is 2
 	const rect = event.target.getBoundingClientRect();
-	const x = event.clientX - rect.left;
-	const y = event.clientY - rect.top;
+	const x = (event.clientX - rect.left) >>> 0;
+	const y = (event.clientY - rect.top) >>> 0;
 	const viewBox = getViewBox(x, y, zoomAreaSize, imgDisplaySize);
 
 	zoomContext.strokeStyle = 'red';
@@ -273,7 +273,10 @@ const clickToZoom = event => {
 	if (displayScaleFactor > 1) {
 		model = generateNextModel(model);
 	} else {
-		const viewBox = getViewBox(event.clientX, event.clientY, model.length / 2, model.length);
+		const rect = event.target.getBoundingClientRect();
+		const x = (event.clientX - rect.left) >>> 0;
+		const y = (event.clientY - rect.top) >>> 0;
+		const viewBox = getViewBox(x, y, model.length / 2, model.length);
 		model = generateNextModel(model, viewBox);
 	}
 	updateDisplayScaleFactorAndCanvasSize();
