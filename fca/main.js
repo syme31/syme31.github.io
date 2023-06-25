@@ -40,7 +40,6 @@ function getRuleIdFromUrlParams() {
 	return ruleId;
 }
 
-
 function getValue(model, x, y) {
 	const size = model.length;
 	if (x < 0) {
@@ -77,16 +76,19 @@ function drawModel() {
 }
 
 function updateDisplayScaleFactorAndCanvasSize() {
-	const widthRatio = document.body.clientWidth / model.length;
-	const heightRatio = document.body.clientHeight / model.length;
+	const widthRatio = layers.clientWidth / model.length;
+	const heightRatio = layers.clientHeight / model.length;
 
 	const wPow = Math.floor(Math.log2(widthRatio));
 	const hPow = Math.floor(Math.log2(heightRatio));
 
 	displayScaleFactor = Math.pow(2, Math.min(wPow, hPow));
 
-	zoomCanvas.width = mainCanvas.width = model.length * displayScaleFactor;
-	zoomCanvas.height = mainCanvas.height = model.length * displayScaleFactor;
+	const size = model.length * displayScaleFactor;
+	[zoomCanvas, mainCanvas].forEach(canvas => {
+		canvas.width = size;
+		canvas.height = size;
+	});
 }
 
 function getViewBox(x, y, size, maxXYMax) {
@@ -144,7 +146,7 @@ function computeValue(model, x, y, rule, inputs) {
 }
 
 function generateNextModel(currentModel, viewBox) {
-	const ruleId = ruleIdTextField.value;
+	ruleId = ruleIdTextField.value;
 	const rule = getRule(ruleId, 4);
 
 	const modelSize = currentModel.length;
@@ -237,6 +239,12 @@ function generateNextModel(currentModel, viewBox) {
 	return nextModel;
 }
 
+function transpose(matrix) {
+	const firstRow = matrix[0];
+	return firstRow.map((unusedValue, columnIndex) => matrix.map(row => row[columnIndex]));
+}
+
+
 let ruleId = getRuleIdFromUrlParams();
 if (ruleId === undefined) {
 	ruleId = 1385;
@@ -246,27 +254,26 @@ ruleIdTextField.value = ruleId;
 ruleIdTextField.min = 0;
 ruleIdTextField.max = Math.pow(2, Math.pow(2, 4)) - 1;
 
-let model = [
+let defaultModel = transpose([
 	[0, 0, 0],
 	[0, 1, 0],
 	[0, 0, 0],
-];
+]);
+
+const defaultModelTextarea = document.getElementById("default-model");
+defaultModelTextarea.value = transpose(defaultModel).map(row => row.join("")).join("\n");
+
+let model = defaultModel;
 
 const mainCanvas = document.getElementById("main");
 const mainContext = mainCanvas.getContext("2d");
 const zoomCanvas = document.getElementById("zoom");
 const zoomContext = zoomCanvas.getContext("2d");
+const layers = document.getElementById("layers");
 
 const initialImage = new Image();
 
 let displayScaleFactor = 1;
-
-// To show the next zoom area
-zoomCanvas.addEventListener("mousemove", event => {
-	window.requestAnimationFrame(() => {
-		drawNextZoomArea(event);
-	});
-});
 
 // To zoom
 const clickToZoom = event => {
@@ -284,10 +291,96 @@ const clickToZoom = event => {
 	drawNextZoomArea(event);
 };
 mainCanvas.addEventListener("click", clickToZoom);
-zoomCanvas.addEventListener("click", clickToZoom);
 
-document.getElementById("show-zoom-area").addEventListener("click", event => {
-	zoomCanvas.style.display = event.target.checked ? "block" : "none";
+document.getElementById("share-ruleId").addEventListener("click", event => {
+	prompt("URL", window.location.href.replace(/[?].*/, "") + "?ruleId=" + ruleId);
+	event.stopPropagation();
 });
+document.getElementById("td-for-ruleId").addEventListener("click", event => {
+	ruleIdTextField.focus();
+});
+
+const tdForSzaCheckbox = document.getElementById("td-for-sza-checkbox");
+if ("ontouchstart" in window ||
+		navigator.msMaxTouchPoints) {
+	// This is a touch device.
+	// Then there is no useful mouse over.
+	// Then we disable the show zoom area, and remove the checkbox.
+	tdForSzaCheckbox.remove();
+	zoomCanvas.style.display = "none";
+} else {
+	// To show the next zoom area
+	zoomCanvas.addEventListener("mousemove", event => {
+		window.requestAnimationFrame(() => {
+			drawNextZoomArea(event);
+		});
+	});
+
+	zoomCanvas.addEventListener("click", clickToZoom);
+
+	const showZoomAreaCheckbox = document.getElementById("show-zoom-area");
+	// Since a label for the checkbox would not receive clicks in the padding area,
+	// the td is listening for clicks and gives untrusted click to the checkbox.
+	tdForSzaCheckbox.addEventListener("click", event => {
+		showZoomAreaCheckbox.dispatchEvent(new Event("click"));
+	});
+	showZoomAreaCheckbox.addEventListener("click", event => {
+		if (event.isTrusted === true) {
+			// real click => ignored (only treat the click events built by the listener on the td)
+			event.stopImmediatePropagation();
+			return false;
+		}
+		showZoomAreaCheckbox.checked = !showZoomAreaCheckbox.checked;
+		zoomCanvas.style.display = showZoomAreaCheckbox.checked
+			? "block"
+			: "none";
+	});
+}
+
+document.getElementById("td-for-reset").addEventListener("click", event => {
+	layers.style.display = "block";
+	defaultModelTextarea.style.display = "none";
+
+	const m = defaultModelTextarea.value
+		.split("\n")
+		.map(line => {
+			const rowStr = line.replace(/[^01]/g, "");
+			return rowStr.length === 0
+				? null
+				: rowStr.split(/(?=[01])/);
+		})
+		.filter(row => row !== null);
+	const nofColumnsSet = new Set(m.map(row => row.length));
+	const nofRows = m.length;
+	const nofNofColumns = nofColumnsSet.size;
+	const nofColumns = [...nofColumnsSet][0];
+
+	if (nofNofColumns === 1 &&
+			nofRows === nofColumns &&
+			nofRows >= 2) {
+		// save it and use it
+		defaultModel = transpose(m);
+		model = defaultModel;
+	} else {
+		console.log("new default model rejected:", nofNofColumns === 1
+			? {
+				"nofColumns": nofColumns,
+				"nofRows": nofRows,
+			}
+			: {
+				"nofColumnsSet": nofColumnsSet,
+				"nofNofColumns": nofNofColumns,
+			});
+		model = defaultModel;
+	}
+	updateDisplayScaleFactorAndCanvasSize();
+	drawModel();
+});
+
+document.getElementById("td-for-edit").addEventListener("click", event => {
+	layers.style.display = "none";
+	defaultModelTextarea.style.display = "block";
+});
+
 updateDisplayScaleFactorAndCanvasSize();
 drawModel();

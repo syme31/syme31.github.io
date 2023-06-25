@@ -1,12 +1,52 @@
 html,
 body {
+	user-select: none;
+	overflow: hidden;
+	height: 100%;
+}
+
+* {
+	margin: 0px;
+	padding: 0px;
+}
+
+table, tr, td {
+	padding: 10px;
+	height: 100%;
+}
+
+td {
+	border: 1px solid #000;
+}
+
+#banner {
+	position: relative;
+	top: 0px;
+	left: 0px;
+	background-color: #ddd;
+	width: 100%;
+	height: 10%;
+}
+
+#banner-content {
+	width: 100%;
 	height: 100%;
 	margin: 0px;
-	overflow: hidden;
+	padding: 0px;
+	border: 1px solid #000;
+}
+
+#share-ruleId, #ruleId {
+	height: 100%;
+}
+
+#main-content, #layers, #default-model {
+	position: relative;
+	width: 100%;
+	height: 100%;
 }
 
 canvas {
-	display: block;
 	position: absolute;
 	top: 0px;
 	left: 0px;
