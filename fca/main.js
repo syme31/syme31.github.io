@@ -78,7 +78,8 @@ function setValue(model, x, y, value) {
 
 function drawModel() {
 	mainContext.clearRect(0, 0, mainContext.width, mainContext.height);
-
+	
+	const model = modelsHistory[0];
 	for (let y = 0; y < model.length; ++y) {
 		for (let x = 0; x < model.length; ++x) {
 			const value = getValue(model, x, y);
@@ -91,6 +92,8 @@ function drawModel() {
 }
 
 function updateDisplayScaleFactorAndCanvasSize() {
+	const model = modelsHistory[0];
+
 	const widthRatio = layers.clientWidth / model.length;
 	const heightRatio = layers.clientHeight / model.length;
 
@@ -130,6 +133,7 @@ function getViewBox(x, y, size, maxXYMax) {
 }
 
 function drawNextZoomArea(event) {
+	const model = modelsHistory[0];
 	const imgDisplaySize = displayScaleFactor * model.length;
 
 	zoomContext.clearRect(0, 0, imgDisplaySize, imgDisplaySize);
@@ -335,7 +339,10 @@ if (defaultModel === undefined) {
 const defaultModelTextarea = document.getElementById("default-model");
 defaultModelTextarea.value = transpose(defaultModel).map(row => row.join("")).join("\n");
 
-let model = defaultModel;
+const modelsHistory = [];
+const setModel = model => modelsHistory.splice(0, 0, model);
+
+setModel(defaultModel);
 
 const mainCanvas = document.getElementById("main");
 const mainContext = mainCanvas.getContext("2d");
@@ -349,14 +356,17 @@ let displayScaleFactor = 1;
 
 // To zoom
 const clickToZoom = event => {
+	const model = modelsHistory[0];
 	if (displayScaleFactor > 1) {
-		model = generateNextModel(model);
+		const nextModel = generateNextModel(model);
+		setModel(nextModel);
 	} else {
 		const rect = event.target.getBoundingClientRect();
 		const x = (event.clientX - rect.left) >>> 0;
 		const y = (event.clientY - rect.top) >>> 0;
 		const viewBox = getViewBox(x, y, model.length / 2, model.length);
-		model = generateNextModel(model, viewBox);
+		const nextModel = generateNextModel(model, viewBox);
+		setModel(nextModel);
 	}
 	updateDisplayScaleFactorAndCanvasSize();
 	drawModel();
@@ -405,6 +415,12 @@ if ("ontouchstart" in window ||
 	});
 }
 
+document.getElementById("td-for-previous").addEventListener("click", event => {
+	modelsHistory.splice(0, 1);
+	updateDisplayScaleFactorAndCanvasSize();
+	drawModel();
+});
+
 document.getElementById("td-for-reset").addEventListener("click", event => {
 	layers.style.display = "block";
 	defaultModelTextarea.style.display = "none";
@@ -428,7 +444,7 @@ document.getElementById("td-for-reset").addEventListener("click", event => {
 			nofRows >= 2) {
 		// save it and use it
 		defaultModel = transpose(m);
-		model = defaultModel;
+		setModel(defaultModel);
 	} else {
 		console.log("new default model rejected:", nofNofColumns === 1
 			? {
@@ -439,7 +455,7 @@ document.getElementById("td-for-reset").addEventListener("click", event => {
 				"nofColumnsSet": nofColumnsSet,
 				"nofNofColumns": nofNofColumns,
 			});
-		model = defaultModel;
+		setModel(defaultModel);
 	}
 	updateDisplayScaleFactorAndCanvasSize();
 	drawModel();
