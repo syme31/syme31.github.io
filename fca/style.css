@@ -33,10 +33,14 @@ td {
 	height: 100%;
 	margin: 0px;
 	padding: 0px;
-	border: 1px solid #000;
+	overflow-x: auto;
 }
 
-#share-ruleId, #ruleId {
+.banner-td {
+	min-width: 150px;
+}
+
+#ruleId {
 	height: 100%;
 }
 

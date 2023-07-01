@@ -2,8 +2,7 @@
 <html>
 
 <head>
-	<meta name="viewport"
-		content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 	<meta name="mobile-web-app-capable" content="yes">
 	<link rel="stylesheet" href="style.css" />
 	<title>Fractal Cellular Automata</title>
@@ -14,18 +13,21 @@
 		<div id="banner-content">
 			<table>
 				<tr>
-					<td id="td-for-ruleId">
-						Rule id: <input type="number" id="ruleId" />&nbsp;<input type="button" id="share-ruleId" value="share" />
+					<td id="td-for-ruleId" class="banner-td">
+						Rule id: <input type="number" id="ruleId" />
 					</td>
-					<td id="td-for-sza-checkbox">
-						<input type="checkbox" id="show-zoom-area" checked="checked" style="vertical-align: middle" />
-						Show next area
+					<td id="td-for-edit" class="banner-td">
+						Edit default model
 					</td>
-					<td id="td-for-reset">
+					<td id="td-for-reset" class="banner-td">
 						Reset
 					</td>
-					<td id="td-for-edit">
-						Edit default model
+					<td id="td-for-share" class="banner-td">
+						Share settings
+					</td>
+					<td id="td-for-sza-checkbox" class="banner-td">
+						<input type="checkbox" id="show-zoom-area" checked="checked" style="vertical-align: middle" />
+						Show next area
 					</td>
 				</tr>
 			</table>
