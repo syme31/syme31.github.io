@@ -12,11 +12,17 @@
 	<div id="app-container">
 		<header id="banner">
 			<div id="banner-content">
-				<div class="control-group">
+				<div class="control-group" id="normal-controls">
 					<div id="td-for-ruleId" class="control-item">
 						<label for="ruleId">Rule ID</label>
-						<input type="number" id="ruleId" />
+						<input type="text" id="ruleId" />
 					</div>
+					<button id="td-for-random" class="control-item btn">
+						<span>Random</span>
+					</button>
+					<button id="td-for-truth-table" class="control-item btn">
+						<span>Truth Table</span>
+					</button>
 					<button id="td-for-edit" class="control-item btn">
 						<span>Edit Model</span>
 					</button>
@@ -34,6 +40,14 @@
 						<label for="show-zoom-area">Show Preview</label>
 					</div>
 				</div>
+				<div class="control-group" id="edit-controls" style="display: none;">
+					<button id="td-for-cancel" class="control-item btn">
+						<span>Cancel</span>
+					</button>
+					<button id="td-for-apply" class="control-item btn btn-primary">
+						<span>Apply</span>
+					</button>
+				</div>
 			</div>
 		</header>
 		<main id="main-content">
@@ -42,6 +56,24 @@
 				<canvas id="zoom"></canvas>
 			</div>
 			<textarea id="default-model" style="display: none;" spellcheck="false"></textarea>
+			<div id="truth-table-panel" style="display: none;">
+				<div id="truth-table-header">
+					<h3>Truth Table</h3>
+					<button id="close-truth-table" class="btn-close">×</button>
+				</div>
+				<div id="truth-table-content">
+					<table id="truth-table">
+						<thead>
+							<tr>
+								<th>Input</th>
+								<th>Output</th>
+							</tr>
+						</thead>
+						<tbody id="truth-table-body">
+						</tbody>
+					</table>
+				</div>
+			</div>
 		</main>
 	</div>
 	<script src="main.js"></script>

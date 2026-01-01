@@ -22,6 +22,23 @@ function getRule(ruleId, nofInputs) {
 	return rule;
 }
 
+function parseRuleId(str) {
+	str = str.trim();
+	let value;
+	
+	if (str.startsWith("0x") || str.startsWith("0X")) {
+		value = parseInt(str, 16);
+	} else {
+		value = parseInt(str, 10);
+	}
+	
+	if (isNaN(value) || value < 0 || value >= Math.pow(2, Math.pow(2, 4))) {
+		return undefined;
+	}
+	
+	return value;
+}
+
 function getRuleIdFromUrlParams() {
 	const queryString = window.location.search;
 	const urlParams = new URLSearchParams(queryString);
@@ -29,15 +46,8 @@ function getRuleIdFromUrlParams() {
 		return undefined;
 	}
 
-	const ruleId = urlParams.get("ruleId");
-	if (!/^\d+$/.test(ruleId)) {
-		return undefined;
-	}
-	if (ruleId >= Math.pow(2, Math.pow(2, 4))) {
-		return undefined;
-	}
-
-	return ruleId;
+	const ruleIdStr = urlParams.get("ruleId");
+	return parseRuleId(ruleIdStr);
 }
 
 function getDefaultModelFromUrlParams() {
@@ -155,10 +165,14 @@ function drawNextZoomArea(event) {
 
 	const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 	
-	zoomContext.strokeStyle = isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.4)';
+	zoomContext.strokeStyle = isDarkMode
+		? 'rgba(255, 255, 255, 0.6)'
+		: 'rgba(0, 0, 0, 0.4)';
 	zoomContext.lineWidth = 2;
 	zoomContext.shadowBlur = 4;
-	zoomContext.shadowColor = isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+	zoomContext.shadowColor = isDarkMode
+		? 'rgba(0, 0, 0, 0.5)'
+		: 'rgba(255, 255, 255, 0.5)';
 	
 	zoomContext.strokeRect(viewBox.min.x, viewBox.min.y, zoomAreaSize, zoomAreaSize);
 	
@@ -178,7 +192,12 @@ function computeValue(model, x, y, rule, inputs) {
 }
 
 function generateNextModel(currentModel, viewBox) {
-	ruleId = ruleIdTextField.value;
+	const currentRuleId = parseRuleId(ruleIdTextField.value);
+	if (currentRuleId === undefined) {
+		return currentModel;
+	}
+	ruleId = currentRuleId;
+	
 	const rule = getRule(ruleId, 4);
 
 	const modelSize = currentModel.length;
@@ -331,14 +350,70 @@ function decodeModel(encoded) {
 		.map(s => s.match(/[01]/g));
 }
 
+function populateTruthTable() {
+	const tbody = document.getElementById("truth-table-body");
+	tbody.innerHTML = "";
+	
+	const rule = getRule(ruleId, 4);
+	
+	for (let i = 15; i >= 0; i--) {
+		const inputBinary = i.toString(2).padStart(4, "0");
+		const output = rule[inputBinary];
+		
+		const tr = document.createElement("tr");
+		tr.dataset.input = inputBinary;
+		
+		const tdInput = document.createElement("td");
+		tdInput.textContent = inputBinary;
+		
+		const tdOutput = document.createElement("td");
+		tdOutput.textContent = output;
+		tdOutput.dataset.output = output;
+		
+		tr.appendChild(tdInput);
+		tr.appendChild(tdOutput);
+		
+		tr.addEventListener("click", () => {
+			const currentOutput = parseInt(tdOutput.dataset.output);
+			const newOutput = currentOutput === 0
+				? 1
+				: 0;
+			tdOutput.textContent = newOutput;
+			tdOutput.dataset.output = newOutput;
+			
+			updateRuleIdFromTruthTable();
+		});
+		
+		tbody.appendChild(tr);
+	}
+}
+
+function updateRuleIdFromTruthTable() {
+	const rows = document.querySelectorAll("#truth-table-body tr");
+	let binaryString = "";
+	
+	for (let i = 0; i < rows.length; i++) {
+		const output = rows[i].querySelector("td:last-child").dataset.output;
+		binaryString += output;
+	}
+	
+	const newRuleId = parseInt(binaryString, 2);
+	ruleId = newRuleId;
+
+	const currentValue = ruleIdTextField.value.trim();
+	if (currentValue.startsWith("0x") || currentValue.startsWith("0X")) {
+		ruleIdTextField.value = "0x" + newRuleId.toString(16);
+	} else {
+		ruleIdTextField.value = newRuleId;
+	}
+}
+
 let ruleId = getRuleIdFromUrlParams();
 if (ruleId === undefined) {
 	ruleId = 1385; // and 64133 are my favorites
 }
 const ruleIdTextField = document.getElementById("ruleId");
 ruleIdTextField.value = ruleId;
-ruleIdTextField.min = 0;
-ruleIdTextField.max = Math.pow(2, Math.pow(2, 4)) - 1;
 
 let defaultModel = getDefaultModelFromUrlParams();
 if (defaultModel === undefined) {
@@ -388,6 +463,30 @@ document.getElementById("td-for-ruleId").addEventListener("click", event => {
 	ruleIdTextField.focus();
 });
 
+document.getElementById("td-for-random").addEventListener("click", event => {
+	const maxRuleId = Math.pow(2, Math.pow(2, 4)) - 1;
+	ruleId = Math.floor(Math.random() * (maxRuleId + 1));
+	ruleIdTextField.value = ruleId;
+});
+
+document.getElementById("td-for-truth-table").addEventListener("click", event => {
+	const panel = document.getElementById("truth-table-panel");
+	if (panel.style.display === "none") {
+		const currentRuleId = parseRuleId(ruleIdTextField.value);
+		if (currentRuleId !== undefined) {
+			ruleId = currentRuleId;
+		}
+		populateTruthTable();
+		panel.style.display = "block";
+	} else {
+		panel.style.display = "none";
+	}
+});
+
+document.getElementById("close-truth-table").addEventListener("click", event => {
+	document.getElementById("truth-table-panel").style.display = "none";
+});
+
 const tdForSzaCheckbox = document.getElementById("td-for-sza-checkbox");
 if ("ontouchstart" in window ||
 		navigator.msMaxTouchPoints) {
@@ -406,7 +505,9 @@ if ("ontouchstart" in window ||
 	const showZoomAreaCheckbox = document.getElementById("show-zoom-area");
 	
 	showZoomAreaCheckbox.addEventListener("change", event => {
-		zoomCanvas.style.display = showZoomAreaCheckbox.checked ? "block" : "none";
+		zoomCanvas.style.display = showZoomAreaCheckbox.checked
+			? "block"
+			: "none";
 	});
 }
 
@@ -418,10 +519,7 @@ document.getElementById("td-for-previous").addEventListener("click", event => {
 	}
 });
 
-document.getElementById("td-for-reset").addEventListener("click", event => {
-	layers.style.display = "flex";
-	defaultModelTextarea.style.display = "none";
-
+function applyModelReset() {
 	const m = defaultModelTextarea.value
 		.split("\n")
 		.map(line => {
@@ -455,12 +553,39 @@ document.getElementById("td-for-reset").addEventListener("click", event => {
 	}
 	updateDisplayScaleFactorAndCanvasSize();
 	drawModel();
+}
+
+document.getElementById("td-for-reset").addEventListener("click", event => {
+	applyModelReset();
 });
 
 document.getElementById("td-for-edit").addEventListener("click", event => {
 	layers.style.display = "none";
 	defaultModelTextarea.style.display = "block";
 	defaultModelTextarea.focus();
+	
+	document.getElementById("normal-controls").style.display = "none";
+	document.getElementById("edit-controls").style.display = "flex";
+});
+
+document.getElementById("td-for-cancel").addEventListener("click", event => {
+	defaultModelTextarea.value = transpose(defaultModel).map(row => row.join("")).join("\n");
+	
+	layers.style.display = "flex";
+	defaultModelTextarea.style.display = "none";
+	
+	document.getElementById("normal-controls").style.display = "flex";
+	document.getElementById("edit-controls").style.display = "none";
+});
+
+document.getElementById("td-for-apply").addEventListener("click", event => {
+	applyModelReset();
+	
+	layers.style.display = "flex";
+	defaultModelTextarea.style.display = "none";
+	
+	document.getElementById("normal-controls").style.display = "flex";
+	document.getElementById("edit-controls").style.display = "none";
 });
 
 document.getElementById("td-for-share").addEventListener("click", event => {

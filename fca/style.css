@@ -15,6 +15,7 @@
 	--btn-bg: #ffffff;
 	--btn-border: #dee2e6;
 	--btn-hover-bg: #f8f9fa;
+	--table-hover: #f8f9fa;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -35,6 +36,7 @@
 		--btn-bg: #2d2d2d;
 		--btn-border: #404040;
 		--btn-hover-bg: #3d3d3d;
+		--table-hover: #3d3d3d;
 	}
 }
 
@@ -107,7 +109,7 @@ body {
 }
 
 #ruleId {
-	width: 80px;
+	width: 100px;
 	padding: 4px 8px;
 	background: var(--input-bg);
 	border: 1px solid var(--input-border);
@@ -140,6 +142,17 @@ body {
 
 .btn:active {
 	transform: translateY(0);
+}
+
+.btn-primary {
+	background: var(--accent);
+	color: white;
+	border-color: var(--accent);
+}
+
+.btn-primary:hover {
+	background: var(--accent-hover);
+	border-color: var(--accent-hover);
 }
 
 .checkbox-wrapper {
@@ -213,6 +226,107 @@ canvas {
 	outline: none;
 }
 
+#truth-table-panel {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: var(--bg-primary);
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+	box-shadow: var(--shadow-lg);
+	padding: 20px;
+	min-width: 300px;
+	max-width: 90vw;
+	max-height: 80vh;
+	overflow: auto;
+	z-index: 200;
+}
+
+#truth-table-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+#truth-table-header h3 {
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.btn-close {
+	background: transparent;
+	border: none;
+	font-size: 28px;
+	line-height: 1;
+	color: var(--text-secondary);
+	cursor: pointer;
+	padding: 0;
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+	transition: all 0.2s ease;
+}
+
+.btn-close:hover {
+	background: var(--btn-hover-bg);
+	color: var(--text-primary);
+}
+
+#truth-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+#truth-table thead th {
+	padding: 10px;
+	text-align: left;
+	border-bottom: 2px solid var(--border-color);
+	font-weight: 600;
+	color: var(--text-secondary);
+	font-size: 13px;
+	text-transform: uppercase;
+}
+
+#truth-table tbody tr {
+	transition: background-color 0.15s ease;
+	cursor: pointer;
+}
+
+#truth-table tbody tr:hover {
+	background: var(--table-hover);
+}
+
+#truth-table tbody tr:nth-child(4n) td {
+	border-bottom: 3px solid var(--border-color);
+}
+
+#truth-table tbody tr:nth-child(4n+1) td {
+	border-top: 3px solid var(--border-color);
+}
+
+#truth-table tbody td {
+	padding: 10px;
+	border-bottom: 1px solid var(--border-color);
+	font-family: 'Courier New', monospace;
+}
+
+#truth-table tbody td:first-child {
+	color: var(--text-secondary);
+}
+
+#truth-table tbody td:last-child {
+	font-weight: 600;
+	color: var(--accent);
+	text-align: center;
+	width: 80px;
+}
+
 @media (max-width: 768px) {
 	#banner-content {
 		padding: 6px 8px;
@@ -228,11 +342,16 @@ canvas {
 	}
 
 	#ruleId {
-		width: 70px;
+		width: 90px;
 	}
 
 	.control-item label {
 		font-size: 13px;
+	}
+
+	#truth-table-panel {
+		padding: 16px;
+		min-width: 280px;
 	}
 }
 
