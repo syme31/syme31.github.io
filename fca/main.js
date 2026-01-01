@@ -350,8 +350,6 @@ const zoomCanvas = document.getElementById("zoom");
 const zoomContext = zoomCanvas.getContext("2d");
 const layers = document.getElementById("layers");
 
-const initialImage = new Image();
-
 let displayScaleFactor = 1;
 
 // To zoom
