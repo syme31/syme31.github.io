@@ -41,12 +41,28 @@
 					</div>
 				</div>
 				<div class="control-group" id="edit-controls" style="display: none;">
-					<button id="td-for-cancel" class="control-item btn">
-						<span>Cancel</span>
-					</button>
 					<button id="td-for-apply" class="control-item btn btn-primary">
 						<span>Apply</span>
 					</button>
+					<button id="td-for-cancel" class="control-item btn">
+						<span>Cancel</span>
+					</button>
+					<div class="separator"></div>
+					<span class="paint-mode-label">Paint mode:</span>
+					<div class="radio-group">
+						<label class="radio-item">
+							<input type="radio" name="paint-color" value="0" checked />
+							<span class="radio-label">0/⬛</span>
+						</label>
+						<label class="radio-item">
+							<input type="radio" name="paint-color" value="1" />
+							<span class="radio-label">1/⬜</span>
+						</label>
+						<label class="radio-item">
+							<input type="radio" name="paint-color" value="?" />
+							<span class="radio-label">?/🟥</span>
+						</label>
+					</div>
 				</div>
 			</div>
 		</header>
@@ -55,7 +71,15 @@
 				<canvas id="main"></canvas>
 				<canvas id="zoom"></canvas>
 			</div>
-			<textarea id="default-model" style="display: none;" spellcheck="false"></textarea>
+			<div id="editor-container" style="display: none;">
+				<div id="editor-left">
+					<textarea id="default-model" spellcheck="false"></textarea>
+				</div>
+				<div id="editor-right">
+					<canvas id="paint-canvas"></canvas>
+					<div id="paint-error" style="display: none;"></div>
+				</div>
+			</div>
 			<div id="truth-table-panel" style="display: none;">
 				<div id="truth-table-header">
 					<h3>Truth Table</h3>
@@ -77,6 +101,7 @@
 		</main>
 	</div>
 	<script src="main.js"></script>
+	<script src="paint-editor.js"></script>
 </body>
 
 </html>

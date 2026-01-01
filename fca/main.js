@@ -427,6 +427,13 @@ if (defaultModel === undefined) {
 const defaultModelTextarea = document.getElementById("default-model");
 defaultModelTextarea.value = transpose(defaultModel).map(row => row.join("")).join("\n");
 
+// Sync textarea -> paint on input
+defaultModelTextarea.addEventListener("input", () => {
+	if (document.getElementById("editor-container").style.display !== "none") {
+		updatePaintFromTextarea();
+	}
+});
+
 const modelsHistory = [];
 const setModel = model => modelsHistory.splice(0, 0, model);
 
@@ -537,9 +544,10 @@ function applyModelReset() {
 	if (nofNofColumns === 1 &&
 			nofRows === nofColumns &&
 			nofRows >= 2) {
+		// Valid model: update defaultModel
 		defaultModel = transpose(m);
-		setModel(defaultModel);
 	} else {
+		// Invalid model: keep existing defaultModel
 		console.log("new default model rejected:", nofNofColumns === 1
 			? {
 				"nofColumns": nofColumns,
@@ -549,8 +557,11 @@ function applyModelReset() {
 				"nofColumnsSet": nofColumnsSet,
 				"nofNofColumns": nofNofColumns,
 			});
-		setModel(defaultModel);
 	}
+	
+	// Clear history and reset to (possibly updated) default model
+	modelsHistory.length = 0;
+	setModel(defaultModel);
 	updateDisplayScaleFactorAndCanvasSize();
 	drawModel();
 }
@@ -559,33 +570,50 @@ document.getElementById("td-for-reset").addEventListener("click", event => {
 	applyModelReset();
 });
 
+const applyButton = document.getElementById("td-for-apply");
+
 document.getElementById("td-for-edit").addEventListener("click", event => {
 	layers.style.display = "none";
-	defaultModelTextarea.style.display = "block";
+	document.getElementById("editor-container").style.display = "flex";
 	defaultModelTextarea.focus();
 	
 	document.getElementById("normal-controls").style.display = "none";
 	document.getElementById("edit-controls").style.display = "flex";
+	
+	// Initialize paint editor
+	if (!paintCanvas) {
+		initPaintEditor();
+	}
+	
+	// Sync text -> paint
+	updatePaintFromTextarea();
+	
+	// Handle window resize for paint canvas
+	window.addEventListener('resize', updatePaintCanvasSize);
 });
 
 document.getElementById("td-for-cancel").addEventListener("click", event => {
 	defaultModelTextarea.value = transpose(defaultModel).map(row => row.join("")).join("\n");
 	
 	layers.style.display = "flex";
-	defaultModelTextarea.style.display = "none";
+	document.getElementById("editor-container").style.display = "none";
 	
 	document.getElementById("normal-controls").style.display = "flex";
 	document.getElementById("edit-controls").style.display = "none";
+	
+	window.removeEventListener('resize', updatePaintCanvasSize);
 });
 
 document.getElementById("td-for-apply").addEventListener("click", event => {
 	applyModelReset();
 	
 	layers.style.display = "flex";
-	defaultModelTextarea.style.display = "none";
+	document.getElementById("editor-container").style.display = "none";
 	
 	document.getElementById("normal-controls").style.display = "flex";
 	document.getElementById("edit-controls").style.display = "none";
+	
+	window.removeEventListener('resize', updatePaintCanvasSize);
 });
 
 document.getElementById("td-for-share").addEventListener("click", event => {

@@ -16,6 +16,8 @@
 	--btn-border: #dee2e6;
 	--btn-hover-bg: #f8f9fa;
 	--table-hover: #f8f9fa;
+	--error-bg: #fff5f5;
+	--error-text: #c53030;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -37,6 +39,8 @@
 		--btn-border: #404040;
 		--btn-hover-bg: #3d3d3d;
 		--table-hover: #3d3d3d;
+		--error-bg: #2d1a1a;
+		--error-text: #fc8181;
 	}
 }
 
@@ -134,14 +138,19 @@ body {
 	transition: all 0.2s ease;
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
 	background: var(--btn-hover-bg);
 	border-color: var(--accent);
 	transform: translateY(-1px);
 }
 
-.btn:active {
+.btn:active:not(:disabled) {
 	transform: translateY(0);
+}
+
+.btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .btn-primary {
@@ -150,7 +159,7 @@ body {
 	border-color: var(--accent);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
 	background: var(--accent-hover);
 	border-color: var(--accent-hover);
 }
@@ -170,6 +179,58 @@ body {
 .checkbox-wrapper label {
 	cursor: pointer;
 	user-select: none;
+}
+
+.radio-group {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.radio-item {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 12px;
+	background: var(--btn-bg);
+	border: 1px solid var(--btn-border);
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.radio-item:hover {
+	background: var(--btn-hover-bg);
+}
+
+.radio-item input[type="radio"] {
+	cursor: pointer;
+	accent-color: var(--accent);
+}
+
+.radio-item input[type="radio"]:checked + .radio-label {
+	font-weight: 600;
+	color: var(--accent);
+}
+
+.radio-label {
+	cursor: pointer;
+	user-select: none;
+	font-size: 14px;
+}
+
+.separator {
+	width: 1px;
+	height: 24px;
+	background: var(--border-color);
+	margin: 0 4px;
+}
+
+.paint-mode-label {
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--text-secondary);
+	white-space: nowrap;
 }
 
 #main-content {
@@ -192,9 +253,12 @@ body {
 }
 
 canvas {
-	position: absolute;
 	image-rendering: pixelated;
 	image-rendering: crisp-edges;
+}
+
+#main, #zoom {
+	position: absolute;
 }
 
 #main {
@@ -207,8 +271,20 @@ canvas {
 	pointer-events: none;
 }
 
+#editor-container {
+	width: 100%;
+	height: 100%;
+	display: flex;
+}
+
+#editor-left, #editor-right {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+}
+
 #default-model {
-	position: absolute;
 	width: 100%;
 	height: 100%;
 	padding: 24px;
@@ -219,11 +295,30 @@ canvas {
 	font-size: 16px;
 	line-height: 1.6;
 	resize: none;
-	transition: opacity 0.3s ease;
+	user-select: text;
 }
 
 #default-model:focus {
 	outline: none;
+}
+
+#editor-right {
+	background: var(--bg-secondary);
+}
+
+#paint-canvas {
+	cursor: crosshair;
+}
+
+#paint-error {
+	padding: 24px;
+	color: var(--error-text);
+	background: var(--error-bg);
+	border-radius: 8px;
+	font-family: 'Courier New', Consolas, monospace;
+	font-size: 14px;
+	max-width: 400px;
+	text-align: center;
 }
 
 #truth-table-panel {
@@ -366,5 +461,25 @@ canvas {
 
 	#td-for-ruleId label {
 		display: inline;
+	}
+}
+
+@media (orientation: portrait) {
+	#editor-container {
+		flex-direction: column;
+	}
+	#editor-left, #editor-right {
+		width: 100%;
+		height: 50%;
+	}
+}
+
+@media (orientation: landscape) {
+	#editor-container {
+		flex-direction: row;
+	}
+	#editor-left, #editor-right {
+		width: 50%;
+		height: 100%;
 	}
 }
