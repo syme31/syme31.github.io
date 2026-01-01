@@ -9,39 +9,40 @@
 </head>
 
 <body>
-	<div id="banner">
-		<div id="banner-content">
-			<table>
-				<tr>
-					<td id="td-for-ruleId" class="banner-td">
-						Rule id: <input type="number" id="ruleId" />
-					</td>
-					<td id="td-for-edit" class="banner-td">
-						Edit default model
-					</td>
-					<td id="td-for-previous" class="banner-td">
-						Reset to previous
-					</td>
-					<td id="td-for-reset" class="banner-td">
-						Reset to default
-					</td>
-					<td id="td-for-share" class="banner-td">
-						Share settings
-					</td>
-					<td id="td-for-sza-checkbox" class="banner-td">
-						<input type="checkbox" id="show-zoom-area" checked="checked" style="vertical-align: middle" />
-						Show next area
-					</td>
-				</tr>
-			</table>
-		</div>
-	</div>
-	<div id="main-content">
-		<div id="layers">
-			<canvas id="main" style="z-index: 0;"></canvas>
-			<canvas id="zoom" style="z-index: 1;"></canvas>
-		</div>
-		<textarea id="default-model" style="display: none;"></textarea>
+	<div id="app-container">
+		<header id="banner">
+			<div id="banner-content">
+				<div class="control-group">
+					<div id="td-for-ruleId" class="control-item">
+						<label for="ruleId">Rule ID</label>
+						<input type="number" id="ruleId" />
+					</div>
+					<button id="td-for-edit" class="control-item btn">
+						<span>Edit Model</span>
+					</button>
+					<button id="td-for-previous" class="control-item btn">
+						<span>Previous</span>
+					</button>
+					<button id="td-for-reset" class="control-item btn">
+						<span>Reset</span>
+					</button>
+					<button id="td-for-share" class="control-item btn">
+						<span>Share</span>
+					</button>
+					<div id="td-for-sza-checkbox" class="control-item checkbox-wrapper">
+						<input type="checkbox" id="show-zoom-area" checked="checked" />
+						<label for="show-zoom-area">Show Preview</label>
+					</div>
+				</div>
+			</div>
+		</header>
+		<main id="main-content">
+			<div id="layers">
+				<canvas id="main"></canvas>
+				<canvas id="zoom"></canvas>
+			</div>
+			<textarea id="default-model" style="display: none;" spellcheck="false"></textarea>
+		</main>
 	</div>
 	<script src="main.js"></script>
 </body>

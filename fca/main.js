@@ -77,25 +77,31 @@ function setValue(model, x, y, value) {
 }
 
 function drawModel() {
-	mainContext.clearRect(0, 0, mainContext.width, mainContext.height);
+	const canvas = mainCanvas;
+	const ctx = mainContext;
+	
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	
 	const model = modelsHistory[0];
+	const cellSize = displayScaleFactor;
+	
 	for (let y = 0; y < model.length; ++y) {
 		for (let x = 0; x < model.length; ++x) {
 			const value = getValue(model, x, y);
 			const color = convertValueToColor(value);
 
-			mainContext.fillStyle = color;
-			mainContext.fillRect(x * displayScaleFactor, y * displayScaleFactor, displayScaleFactor, displayScaleFactor);
+			ctx.fillStyle = color;
+			ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
 		}
 	}
 }
 
 function updateDisplayScaleFactorAndCanvasSize() {
 	const model = modelsHistory[0];
+	const container = layers;
 
-	const widthRatio = layers.clientWidth / model.length;
-	const heightRatio = layers.clientHeight / model.length;
+	const widthRatio = container.clientWidth / model.length;
+	const heightRatio = container.clientHeight / model.length;
 
 	const wPow = Math.floor(Math.log2(widthRatio));
 	const hPow = Math.floor(Math.log2(heightRatio));
@@ -110,7 +116,7 @@ function updateDisplayScaleFactorAndCanvasSize() {
 }
 
 function getViewBox(x, y, size, maxXYMax) {
-	const halfSize = size / 2; // because we want to center, if possible, the box on the (x, y) point
+	const halfSize = size / 2;
 	x -= halfSize;
 	y -= halfSize;
 
@@ -138,7 +144,6 @@ function drawNextZoomArea(event) {
 
 	zoomContext.clearRect(0, 0, imgDisplaySize, imgDisplaySize);
 	if (displayScaleFactor > 1) {
-		zoomContext.strokeRect(0, 0, imgDisplaySize, imgDisplaySize);
 		return;
 	}
 
@@ -148,8 +153,16 @@ function drawNextZoomArea(event) {
 	const y = (event.clientY - rect.top) >>> 0;
 	const viewBox = getViewBox(x, y, zoomAreaSize, imgDisplaySize);
 
-	zoomContext.strokeStyle = 'red';
+	const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+	
+	zoomContext.strokeStyle = isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.4)';
+	zoomContext.lineWidth = 2;
+	zoomContext.shadowBlur = 4;
+	zoomContext.shadowColor = isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.5)';
+	
 	zoomContext.strokeRect(viewBox.min.x, viewBox.min.y, zoomAreaSize, zoomAreaSize);
+	
+	zoomContext.shadowBlur = 0;
 }
 
 function convertValueToColor(value) {
@@ -352,7 +365,6 @@ const layers = document.getElementById("layers");
 
 let displayScaleFactor = 1;
 
-// To zoom
 const clickToZoom = event => {
 	const model = modelsHistory[0];
 	if (displayScaleFactor > 1) {
@@ -385,42 +397,29 @@ if ("ontouchstart" in window ||
 	tdForSzaCheckbox.remove();
 	zoomCanvas.style.display = "none";
 } else {
-	// To show the next zoom area
-	zoomCanvas.addEventListener("mousemove", event => {
+	mainCanvas.addEventListener("mousemove", event => {
 		window.requestAnimationFrame(() => {
 			drawNextZoomArea(event);
 		});
 	});
 
-	zoomCanvas.addEventListener("click", clickToZoom);
-
 	const showZoomAreaCheckbox = document.getElementById("show-zoom-area");
-	// Since a label for the checkbox would not receive clicks in the padding area,
-	// the td is listening for clicks and gives untrusted click to the checkbox.
-	tdForSzaCheckbox.addEventListener("click", event => {
-		showZoomAreaCheckbox.dispatchEvent(new Event("click"));
-	});
-	showZoomAreaCheckbox.addEventListener("click", event => {
-		if (event.isTrusted === true) {
-			// real click => ignored (only treat the click events built by the listener on the td)
-			event.stopImmediatePropagation();
-			return false;
-		}
-		showZoomAreaCheckbox.checked = !showZoomAreaCheckbox.checked;
-		zoomCanvas.style.display = showZoomAreaCheckbox.checked
-			? "block"
-			: "none";
+	
+	showZoomAreaCheckbox.addEventListener("change", event => {
+		zoomCanvas.style.display = showZoomAreaCheckbox.checked ? "block" : "none";
 	});
 }
 
 document.getElementById("td-for-previous").addEventListener("click", event => {
-	modelsHistory.splice(0, 1);
-	updateDisplayScaleFactorAndCanvasSize();
-	drawModel();
+	if (modelsHistory.length > 1) {
+		modelsHistory.splice(0, 1);
+		updateDisplayScaleFactorAndCanvasSize();
+		drawModel();
+	}
 });
 
 document.getElementById("td-for-reset").addEventListener("click", event => {
-	layers.style.display = "block";
+	layers.style.display = "flex";
 	defaultModelTextarea.style.display = "none";
 
 	const m = defaultModelTextarea.value
@@ -440,7 +439,6 @@ document.getElementById("td-for-reset").addEventListener("click", event => {
 	if (nofNofColumns === 1 &&
 			nofRows === nofColumns &&
 			nofRows >= 2) {
-		// save it and use it
 		defaultModel = transpose(m);
 		setModel(defaultModel);
 	} else {
@@ -462,6 +460,7 @@ document.getElementById("td-for-reset").addEventListener("click", event => {
 document.getElementById("td-for-edit").addEventListener("click", event => {
 	layers.style.display = "none";
 	defaultModelTextarea.style.display = "block";
+	defaultModelTextarea.focus();
 });
 
 document.getElementById("td-for-share").addEventListener("click", event => {
@@ -469,6 +468,11 @@ document.getElementById("td-for-share").addEventListener("click", event => {
 		+ "?" + "ruleId=" + ruleId
 		+ "&" + "dm=" + encodeModel(defaultModel);
 	prompt("URL", url);
+});
+
+window.addEventListener('resize', () => {
+	updateDisplayScaleFactorAndCanvasSize();
+	drawModel();
 });
 
 updateDisplayScaleFactorAndCanvasSize();
